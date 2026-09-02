@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXIT KR - 공무원 법률 / 사이드공지</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen pb-28 md:pb-8">
+
+    <!-- Header & Nav Tabs -->
+    <header class="sticky top-0 z-30 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 py-3 shadow-lg">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <span class="bg-indigo-600 text-white font-bold px-2.5 py-1 rounded-lg text-sm tracking-wider">EXIT KR</span>
+                <!-- Page Navigation Tabs -->
+                <nav class="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+                    <button onclick="switchMainPage('calculator')" id="main-tab-calc" class="px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg bg-indigo-600 text-white transition">
+                        <i class="fa-solid fa-calculator mr-1"></i> 벌금 계산기
+                    </button>
+                    <button onclick="switchMainPage('side-notice')" id="main-tab-notice" class="px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-bullhorn mr-1"></i> 사이드공지
+                    </button>
+                </nav>
+            </div>
+            <button id="reset-btn" onclick="resetSelection()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm px-3 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>초기화</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- PAGE 1: 벌금 계산기 -->
+    <main id="page-calculator" class="max-w-6xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
+        <!-- Left: Category Tabs & Law List -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="flex flex-col sm:flex-row gap-3 justify-between items-center">
+                <div class="flex bg-slate-800/80 p-1 rounded-xl w-full sm:w-auto overflow-x-auto border border-slate-700/50">
+                    <button onclick="filterCategory('all')" id="tab-all" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition bg-indigo-600 text-white">전체 보기</button>
+                    <button onclick="filterCategory('traffic')" id="tab-traffic" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition text-slate-400 hover:text-white">I. 도로교통법</button>
+                    <button onclick="filterCategory('felony')" id="tab-felony" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition text-slate-400 hover:text-white">II. 중범죄</button>
+                    <button onclick="filterCategory('official')" id="tab-official" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition text-slate-400 hover:text-white">III. 공무원 법</button>
+                    <button onclick="filterCategory('rp_robbery')" id="tab-rp_robbery" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition text-slate-400 hover:text-white">IV. RP 범죄/강도</button>
+                </div>
+                
+                <div class="relative w-full sm:w-48">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="죄목 검색..." class="w-full bg-slate-800/80 border border-slate-700 text-slate-200 text-xs rounded-xl pl-8 pr-3 py-2 focus:outline-none focus:border-indigo-500">
+                </div>
+            </div>
+
+            <!-- Law Content Render Container -->
+            <div id="law-content" class="space-y-6"></div>
+        </div>
+
+        <!-- Right: Calculation Results Panel -->
+        <div class="lg:col-span-1">
+            <div class="sticky top-20 bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-2xl backdrop-blur">
+                <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+                    <h2 class="font-bold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-indigo-400"></i>
+                        계산 결과
+                    </h2>
+                    <span id="selected-count" class="bg-indigo-500/20 text-indigo-300 text-xs px-2.5 py-1 rounded-full font-semibold border border-indigo-500/30">0건 선택됨</span>
+                </div>
+
+                <!-- Modifiers Toggles -->
+                <div class="bg-slate-900/80 border border-slate-700/60 rounded-xl p-3 mb-4 space-y-2.5">
+                    <div class="text-xs font-bold text-slate-300 flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
+                        <i class="fa-solid fa-sliders text-indigo-400"></i>
+                        <span>처벌 옵션 설정</span>
+                    </div>
+
+                    <label class="flex items-center justify-between cursor-pointer group">
+                        <span class="text-xs text-slate-300 group-hover:text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-baby text-amber-400"></i>
+                            <span>뉴비 처벌 50% 감면</span>
+                        </span>
+                        <input type="checkbox" id="toggle-newbie" onchange="updateSummary()" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 relative"></div>
+                    </label>
+
+                    <label class="flex items-center justify-between cursor-pointer group">
+                        <span class="text-xs text-slate-300 group-hover:text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-lock text-rose-400"></i>
+                            <span>필수 구금 10분 강제 적용</span>
+                        </span>
+                        <input type="checkbox" id="toggle-mustjail" onchange="updateSummary()" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500 relative"></div>
+                    </label>
+
+                    <label class="flex items-center justify-between cursor-pointer group">
+                        <span class="text-xs text-slate-300 group-hover:text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-bolt text-emerald-400"></i>
+                            <span>풀보석금 전환 (1분당 200만)</span>
+                        </span>
+                        <input type="checkbox" id="toggle-bail" onchange="updateSummary()" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500 relative"></div>
+                    </label>
+                </div>
+
+                <!-- Selected List Container -->
+                <div id="selected-list" class="max-h-48 overflow-y-auto mb-4 space-y-2 pr-1 min-h-[80px] text-xs">
+                    <div id="empty-notice" class="h-20 flex flex-col items-center justify-center text-slate-500 gap-1.5">
+                        <i class="fa-solid fa-list-check text-xl"></i>
+                        <span>선택된 항목이 없습니다.</span>
+                    </div>
+                </div>
+
+                <!-- Total Amount Card -->
+                <div class="bg-slate-900/90 rounded-xl p-4 border border-slate-700/60 space-y-2.5">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">최초 총 구금</span>
+                        <span id="original-jail" class="font-medium text-slate-300">0분</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">필수 구금 시간</span>
+                        <span id="must-jail" class="font-semibold text-rose-400">0분</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm pt-1 border-t border-slate-800">
+                        <span class="text-slate-300 font-semibold">최종 구금 시간</span>
+                        <span id="total-jail" class="font-bold text-amber-400 text-base">0분</span>
+                    </div>
+                    <div id="bail-converted-box" class="hidden flex justify-between items-center text-xs text-emerald-400 bg-emerald-950/40 px-2 py-1 rounded border border-emerald-800/40">
+                        <span>보석 전환금 (+<span id="bail-minutes">0</span>분)</span>
+                        <span id="bail-amount" class="font-bold">+0원</span>
+                    </div>
+                    <div class="border-t border-slate-800 pt-2 flex justify-between items-end">
+                        <span class="text-slate-300 text-sm font-semibold">최종 총 벌금액</span>
+                        <span id="total-fine" class="font-extrabold text-emerald-400 text-xl tracking-tight">0원</span>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="copySummary()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium text-sm py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">
+                    <i class="fa-regular fa-copy"></i>
+                    <span>처벌 법 명 복사하기</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- PAGE 2: 사이드공지 (인트라넷 스타일) -->
+    <main id="page-side-notice" class="max-w-6xl mx-auto p-4 hidden space-y-6 mt-2">
+        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <i class="fa-solid fa-bullhorn text-indigo-400"></i>
+            사이드공지
+        </h2>
+
+        <!-- Top Forms Grid (출석·수배 & 영장 RP) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- 출석 · 수배 카드 -->
+            <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4">
+                <h3 class="font-bold text-slate-200 text-sm border-b border-slate-700/60 pb-2">출석 · 수배</h3>
+                <div class="space-y-3">
+                    <input type="text" id="wanted-name" placeholder="닉네임" class="w-full bg-slate-900/90 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="wanted-id" placeholder="고유번호" class="w-full bg-slate-900/90 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="wanted-reason" placeholder="사유" class="w-full bg-slate-900/90 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="grid grid-cols-3 gap-2 pt-1">
+                    <button onclick="copyWantedNotice('attendance')" class="bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 text-xs py-2 rounded-xl transition font-medium">출석 요구 복사</button>
+                    <button onclick="copyWantedNotice('wanted')" class="bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 text-xs py-2 rounded-xl transition font-medium">수배 공지 복사</button>
+                    <button onclick="copyWantedNotice('end')" class="bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 text-xs py-2 rounded-xl transition font-medium">수배 종료</button>
+                </div>
+            </div>
+
+            <!-- 영장 RP 카드 -->
+            <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4">
+                <h3 class="font-bold text-slate-200 text-sm border-b border-slate-700/60 pb-2">영장 RP</h3>
+                <div class="space-y-3">
+                    <input type="text" id="warrant-name" placeholder="닉네임" class="w-full bg-slate-900/90 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="warrant-id" placeholder="고유번호" class="w-full bg-slate-900/90 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="warrant-faction" placeholder="팩션명" class="w-full bg-slate-900/90 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="grid grid-cols-3 gap-2 pt-1">
+                    <button onclick="copyWarrantNotice('convert')" class="bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 text-xs py-2 rounded-xl transition font-medium">영장 RP 전환 복사</button>
+                    <button onclick="copyWarrantNotice('wait')" class="bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 text-xs py-2 rounded-xl transition font-medium">대표 대기 요청 복사</button>
+                    <button onclick="copyWarrantNotice('complete')" class="bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 text-xs py-2 rounded-xl transition font-medium">영장 확인 완료 복사</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RP Alpi Tabs & Notice Lists -->
+        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-5">
+            <div class="grid grid-cols-3 gap-2 bg-slate-900/60 p-1.5 rounded-xl border border-slate-700/60">
+                <button onclick="switchAlpiTab('atm')" id="alpi-tab-atm" class="alpi-tab-btn py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white transition text-center">ATM 알피</button>
+                <button onclick="switchAlpiTab('convenience')" id="alpi-tab-convenience" class="alpi-tab-btn py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition text-center">편의점 알피</button>
+                <button onclick="switchAlpiTab('etc')" id="alpi-tab-etc" class="alpi-tab-btn py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition text-center">기타 및 대형 알피</button>
+            </div>
+
+            <!-- List Content Box -->
+            <div id="alpi-list-container" class="space-y-3">
+                <!-- Dynamically Rendered -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Summary Bar -->
+    <div id="mobile-bar" class="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 p-3 shadow-2xl backdrop-blur z-40">
+        <div class="flex justify-between items-center max-w-6xl mx-auto px-2">
+            <div>
+                <div class="text-[10px] text-slate-400">총 합계 (<span id="mobile-count">0</span>건)</div>
+                <div class="flex items-center gap-2">
+                    <span id="mobile-fine" class="font-bold text-emerald-400 text-sm">0원</span>
+                    <span id="mobile-jail" class="text-xs text-amber-400 font-medium">(0분)</span>
+                </div>
+            </div>
+            <button onclick="window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })" class="bg-indigo-600 text-white text-xs px-3.5 py-2 rounded-lg font-medium shadow">
+                내역 확인
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-20 right-4 lg:bottom-8 lg:right-8 bg-slate-800 border border-indigo-500 text-slate-100 text-xs px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 z-50 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-indigo-400"></i>
+        <span id="toast-message">내용이 복사되었습니다.</span>
+    </div>
+
+    <script>
+        const BAIL_RATE_PER_MINUTE = 2000000;
+
+        // Law Data
+        const lawData = [
+            // I. 도로교통법
+            { id: 1, category: 'traffic', title: '속도위반 (일반도로)', fine: 10000000, jail: 0, mustJail: 0, note: '일반: 120KM' },
+            { id: 2, category: 'traffic', title: '속도위반 (고속도로)', fine: 20000000, jail: 0, mustJail: 0, note: '고속도로: 220KM' },
+            { id: 3, category: 'traffic', title: '신호 위반', fine: 10000000, jail: 0, mustJail: 0, note: '' },
+            { id: 4, category: 'traffic', title: '소음공해', fine: 10000000, jail: 0, mustJail: 0, note: '' },
+            { id: 5, category: 'traffic', title: '불법 주정차', fine: 10000000, jail: 0, mustJail: 0, note: '' },
+            { id: 6, category: 'traffic', title: '불법 유턴', fine: 10000000, jail: 0, mustJail: 0, note: '' },
+            { id: 7, category: 'traffic', title: '역주행 / 차선위반', fine: 10000000, jail: 0, mustJail: 0, note: '' },
+            { id: 8, category: 'traffic', title: '인도주행및침범', fine: 10000000, jail: 0, mustJail: 0, note: '' },
+            { id: 9, category: 'traffic', title: '공공 기물파손', fine: 15000000, jail: 0, mustJail: 0, note: '' },
+            { id: 10, category: 'traffic', title: '스턴트', fine: 20000000, jail: 0, mustJail: 0, note: '앞바퀴 두개이상 뜰 시' },
+            { id: 11, category: 'traffic', title: '차량파손', fine: 50000000, jail: 0, mustJail: 0, note: '' },
+            { id: 12, category: 'traffic', title: '뺑소니', fine: 100000000, jail: 20, mustJail: 0, note: '합의 시 처벌 불가' },
+            { id: 13, category: 'traffic', title: '난폭운전', fine: 150000000, jail: 20, mustJail: 0, note: '도로 교통법 3개 이상 위반 시' },
+            { id: 14, category: 'traffic', title: '폭주', fine: 50000000, jail: 20, mustJail: 0, note: '350km 이상 / 속도위반 동시에 처리x' },
+            { id: 15, category: 'traffic', title: '항공기 저공비행', fine: 300000000, jail: 40, mustJail: 0, note: '메이즈 타워 기준보다 낮을 시 처벌' },
+            { id: 16, category: 'traffic', title: '보복운전', fine: 100000000, jail: 20, mustJail: 0, note: '' },
+            { id: 17, category: 'traffic', title: '무허가 항공기 운행', fine: 150000000, jail: 30, mustJail: 0, note: '' },
+
+            // II. 중범죄
+            { id: 18, category: 'felony', title: '명예훼손', fine: 20000000, jail: 10, mustJail: 0, note: '' },
+            { id: 19, category: 'felony', title: '폭행', fine: 70000000, jail: 10, mustJail: 0, note: '' },
+            { id: 20, category: 'felony', title: '불법 물건 소지', fine: 80000000, jail: 20, mustJail: 0, note: '' },
+            { id: 21, category: 'felony', title: '불법 무기 소지', fine: 150000000, jail: 20, mustJail: 0, note: '' },
+            { id: 22, category: 'felony', title: '불법 무기 / 물건 언급', fine: 100000000, jail: 20, mustJail: 0, note: '채팅 포함 / 은어 미사용 시' },
+            { id: 23, category: 'felony', title: '증거 인멸', fine: 120000000, jail: 20, mustJail: 0, note: '' },
+            { id: 24, category: 'felony', title: '차량절도', fine: 100000000, jail: 20, mustJail: 0, note: '' },
+            { id: 25, category: 'felony', title: '시민 살인', fine: 200000000, jail: 30, mustJail: 0, note: '' },
+            { id: 26, category: 'felony', title: '방조 / 공범죄범죄', fine: 0, jail: 0, mustJail: 0, note: '구금 사항에만 해당(범죄자와 동일) / 불법 물건·무기 개별 처벌' },
+            { id: 47, category: 'felony', title: '지시불이행', fine: 40000000, jail: 10, mustJail: 0, note: '경관의 명령에 지시불이행할 경우' },
+            { id: 48, category: 'felony', title: '살인미수', fine: 100000000, jail: 15, mustJail: 0, note: '' },
+
+            // III. 공무원 법
+            { id: 27, category: 'official', title: '공무원 차량 절도 시도', fine: 100000000, jail: 0, mustJail: 0, note: '' },
+            { id: 28, category: 'official', title: '공무원 명예 훼손', fine: 200000000, jail: 10, mustJail: 0, note: '' },
+            { id: 29, category: 'official', title: '공무원 차량 절도', fine: 250000000, jail: 20, mustJail: 0, note: '' },
+            { id: 30, category: 'official', title: '공무원 차량 파손', fine: 100000000, jail: 10, mustJail: 0, note: '' },
+            { id: 31, category: 'official', title: '공무원 사칭', fine: 50000000, jail: 10, mustJail: 0, note: '' },
+            { id: 32, category: 'official', title: '공무 집행 방해', fine: 150000000, jail: 30, mustJail: 0, note: '허위신고, 경관지시 불이행 3회 이상 무시' },
+            { id: 33, category: 'official', title: '국유지 사유지 무단침입', fine: 200000000, jail: 30, mustJail: 0, note: '' },
+            { id: 34, category: 'official', title: '공무원 폭행', fine: 250000000, jail: 20, mustJail: 0, note: '' },
+            { id: 35, category: 'official', title: '공무원 살인', fine: 400000000, jail: 40, mustJail: 0, note: '' },
+
+            // IV. RP 범죄/강도
+            { id: 36, category: 'rp_robbery', title: '빈집 털이 (패배)', fine: 30000000, jail: 10, mustJail: 0, note: 'RP 승리시 검은돈 2억' },
+            { id: 49, category: 'rp_robbery', title: '미용실 털이 (패배)', fine: 100000000, jail: 10, mustJail: 0, note: 'RP 승리시 검은돈 4억' },
+            { id: 37, category: 'rp_robbery', title: 'ATM 강도 (패배)', fine: 50000000, jail: 10, mustJail: 0, note: 'RP 승리시 검은돈 3억' },
+            { id: 38, category: 'rp_robbery', title: '편의점 강도 (패배)', fine: 100000000, jail: 10, mustJail: 0, note: 'RP 승리시 검은돈 5억' },
+            { id: 39, category: 'rp_robbery', title: '보석상 강도 (패배)', fine: 150000000, jail: 20, mustJail: 10, note: 'RP 승리시 검은돈 10억 / 최소 구금 10분 필수' },
+            { id: 40, category: 'rp_robbery', title: '닭공장 강도 (패배)', fine: 150000000, jail: 30, mustJail: 10, note: 'RP 승리시 검은돈 12억 / 최소 구금 10분 필수' },
+            { id: 41, category: 'rp_robbery', title: '남부은행 강도 (패배)', fine: 200000000, jail: 30, mustJail: 10, note: 'RP 승리시 검은돈 15억 / 최소 구금 10분 필수' },
+            { id: 42, category: 'rp_robbery', title: '북부은행 강도 (패배)', fine: 200000000, jail: 30, mustJail: 10, note: 'RP 승리시 검은돈 15억 / 최소 구금 10분 필수' },
+            { id: 43, category: 'rp_robbery', title: '[즉흥] RP 패배', fine: 100000000, jail: 20, mustJail: 0, note: 'RP 승리시 범죄 면책 / 도주자 범죄 행위 가중 처벌' },
+            { id: 44, category: 'rp_robbery', title: '[도주] RP 패배', fine: 200000000, jail: 25, mustJail: 0, note: 'RP 승리시 범죄 면책 / 착용 무기 압수 및 최초 도주자 가중 처벌' },
+            { id: 45, category: 'rp_robbery', title: '[수배] RP 패배', fine: 300000000, jail: 30, mustJail: 0, note: 'RP 승리시 범죄 면책 / 수배자 범죄 행위 가중 처벌' },
+            { id: 46, category: 'rp_robbery', title: '[영장] RP 패배', fine: 400000000, jail: 30, mustJail: 0, note: 'RP 승리시 범죄 면책 / 전원 불법물건·착용무기 압수 및 가중 처벌' }
+        ];
+
+        // Side Notice RP Locations Data
+        const alpiData = {
+            atm: [
+                { 
+                    name: '메인광장 206번지 ATM', 
+                    noticeText: '/경찰청 현재 "206번지 ATM"에 강도가 출현하였습니다. 시민 분들께서는 ATM 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                },
+                { 
+                    name: '신경 위 656번지 ATM', 
+                    noticeText: '/경찰청 현재 "656번지 ATM"에 강도가 출현하였습니다. 시민 분들께서는 ATM 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                },
+                { 
+                    name: '남부 584번지 ATM', 
+                    noticeText: '/경찰청 현재 "584번지 ATM"에 강도가 출현하였습니다. 시민 분들께서는 ATM 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                }
+            ],
+            convenience: [
+                { 
+                    name: '남부 125번지 편의점', 
+                    noticeText: '/경찰청 현재 "125번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                },
+                { 
+                    name: '남부 은행 뒤 574번지 편의점', 
+                    noticeText: '/경찰청 현재 "574번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                },
+                { 
+                    name: '신경 위 635번지 편의점', 
+                    noticeText: '/경찰청 현재 "635번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                },
+                { 
+                    name: '신경 옆 333번지 편의점', 
+                    noticeText: '/경찰청 현재 "333번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                }
+            ],
+            etc: [
+                { 
+                    name: '보석상 697번지', 
+                    noticeText: '/경찰청 현재 697번지 "보석상" 에 강도가 출현하였습니다. 시민 분들께서는 보석상 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                },
+                { 
+                    name: '남부은행 575번지', 
+                    noticeText: '/경찰청 현재 575번지 "남부은행" 에 강도가 출현하였습니다. 시민 분들께서는 남부은행 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                },
+                { 
+                    name: '남부 빈집털이 692번지', 
+                    noticeText: '/경찰청 현재 692번지 "남부 빈집털이" 에 강도가 출현하였습니다. 시민 분들께서는 남부 빈집털이 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                }
+            ]
+        };
+
+        let selectedMap = new Map();
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let currentAlpiTab = 'atm';
+
+        function formatMoney(num) {
+            return num.toLocaleString('ko-KR') + '원';
+        }
+
+        // Time Helper: HH:MM Format Output
+        function getTimeFormatted(minutesToAdd = 0) {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + minutesToAdd);
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            return `${hh}:${mm}`;
+        }
+
+        // Main Navigation Switching
+        function switchMainPage(page) {
+            const calcPage = document.getElementById('page-calculator');
+            const noticePage = document.getElementById('page-side-notice');
+            const calcTabBtn = document.getElementById('main-tab-calc');
+            const noticeTabBtn = document.getElementById('main-tab-notice');
+            const mobileBar = document.getElementById('mobile-bar');
+
+            if (page === 'calculator') {
+                calcPage.classList.remove('hidden');
+                noticePage.classList.add('hidden');
+                mobileBar.classList.remove('hidden');
+
+                calcTabBtn.className = "px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg bg-indigo-600 text-white transition";
+                noticeTabBtn.className = "px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition";
+            } else {
+                calcPage.classList.add('hidden');
+                noticePage.classList.remove('hidden');
+                mobileBar.classList.add('hidden');
+
+                noticeTabBtn.className = "px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg bg-indigo-600 text-white transition";
+                calcTabBtn.className = "px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition";
+                renderAlpiList();
+            }
+        }
+
+        // Render Law List
+        function render() {
+            const container = document.getElementById('law-content');
+            container.innerHTML = '';
+
+            const categories = [
+                { id: 'traffic', name: 'I. 도로교통법' },
+                { id: 'felony', name: 'II. 중범죄' },
+                { id: 'official', name: 'III. 공무원 법' },
+                { id: 'rp_robbery', name: 'IV. RP 범죄/강도' }
+            ];
+
+            categories.forEach(cat => {
+                if (currentFilter !== 'all' && currentFilter !== cat.id) return;
+
+                const items = lawData.filter(item => {
+                    const matchesCategory = item.category === cat.id;
+                    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                          item.note.toLowerCase().includes(searchQuery.toLowerCase());
+                    return matchesCategory && matchesSearch;
+                });
+
+                if (items.length === 0) return;
+
+                const sectionEl = document.createElement('div');
+                sectionEl.className = "bg-slate-800/60 border border-slate-700/70 rounded-2xl overflow-hidden shadow-lg backdrop-blur";
+
+                let rowsHtml = items.map(item => {
+                    const count = selectedMap.get(item.id) || 0;
+                    const isSelected = count > 0;
+
+                    return `
+                        <div class="p-3.5 sm:p-4 border-b border-slate-700/40 hover:bg-slate-700/30 transition flex justify-between items-center ${isSelected ? 'bg-indigo-950/30' : ''}">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-slate-100 text-sm sm:text-base">${item.title}</span>
+                                    ${item.jail > 0 ? `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] px-2 py-0.5 rounded-full">구금 ${item.jail}분</span>` : ''}
+                                    ${item.mustJail > 0 ? `<span class="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] px-2 py-0.5 rounded-full">필수 ${item.mustJail}분</span>` : ''}
+                                </div>
+                                <div class="text-xs text-emerald-400 font-medium">${item.fine > 0 ? formatMoney(item.fine) : '범죄자와 동일 / 개별 처벌'}</div>
+                                ${item.note ? `<div class="text-[11px] text-slate-400">${item.note}</div>` : ''}
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                ${isSelected ? `
+                                    <button onclick="changeCount(${item.id}, -1)" class="w-7 h-7 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg flex items-center justify-center font-bold">-</button>
+                                    <span class="w-5 text-center font-bold text-indigo-300 text-sm">${count}</span>
+                                ` : ''}
+                                <button onclick="changeCount(${item.id}, 1)" class="px-3 py-1.5 ${isSelected ? 'bg-indigo-600' : 'bg-slate-700'} hover:opacity-90 text-white rounded-lg text-xs font-semibold">
+                                    ${isSelected ? '추가' : '선택'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                sectionEl.innerHTML = `
+                    <div class="bg-slate-800 px-4 py-3 border-b border-slate-700 font-bold text-slate-200 text-sm sm:text-base">
+                        ${cat.name}
+                    </div>
+                    <div class="divide-y divide-slate-700/30">
+                        ${rowsHtml}
+                    </div>
+                `;
+
+                container.appendChild(sectionEl);
+            });
+
+            updateSummary();
+        }
+
+        function changeCount(id, delta) {
+            const current = selectedMap.get(id) || 0;
+            const next = current + delta;
+            if (next <= 0) {
+                selectedMap.delete(id);
+            } else {
+                selectedMap.set(id, next);
+            }
+            render();
+        }
+
+        function resetSelection() {
+            selectedMap.clear();
+            document.getElementById('toggle-newbie').checked = false;
+            document.getElementById('toggle-mustjail').checked = false;
+            document.getElementById('toggle-bail').checked = false;
+
+            document.getElementById('wanted-name').value = '';
+            document.getElementById('wanted-id').value = '';
+            document.getElementById('wanted-reason').value = '';
+            document.getElementById('warrant-name').value = '';
+            document.getElementById('warrant-id').value = '';
+            document.getElementById('warrant-faction').value = '';
+
+            render();
+            showToast('모든 입력 항목이 초기화되었습니다.');
+        }
+
+        function filterCategory(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('text-slate-400');
+            });
+            const activeTab = document.getElementById(`tab-${cat}`);
+            if (activeTab) {
+                activeTab.classList.add('bg-indigo-600', 'text-white');
+                activeTab.classList.remove('text-slate-400');
+            }
+            render();
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value;
+            render();
+        }
+
+        function updateSummary() {
+            const listContainer = document.getElementById('selected-list');
+            listContainer.innerHTML = '';
+
+            let rawFine = 0;
+            let rawJail = 0;
+            let maxItemMustJail = 0;
+            let totalCount = 0;
+
+            const isNewbie = document.getElementById('toggle-newbie').checked;
+            const forceMustJail = document.getElementById('toggle-mustjail').checked;
+            const isBail = document.getElementById('toggle-bail').checked;
+
+            if (selectedMap.size === 0) {
+                listContainer.innerHTML = `
+                    <div id="empty-notice" class="h-20 flex flex-col items-center justify-center text-slate-500 gap-1.5">
+                        <i class="fa-solid fa-list-check text-xl"></i>
+                        <span>선택된 항목이 없습니다.</span>
+                    </div>
+                `;
+            } else {
+                selectedMap.forEach((count, id) => {
+                    const item = lawData.find(l => l.id === id);
+                    if (!item) return;
+
+                    rawFine += item.fine * count;
+                    rawJail += item.jail * count;
+                    if (item.mustJail > maxItemMustJail) {
+                        maxItemMustJail = item.mustJail;
+                    }
+                    totalCount += count;
+
+                    const itemEl = document.createElement('div');
+                    itemEl.className = "flex justify-between items-center bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50";
+                    itemEl.innerHTML = `
+                        <div class="pr-2 truncate">
+                            <div class="font-medium text-slate-200 truncate">${item.title} ${count > 1 ? `<span class="text-indigo-400">x${count}</span>` : ''}</div>
+                            <div class="text-[11px] text-slate-400">${item.fine > 0 ? formatMoney(item.fine * count) : '개별처벌'} ${item.jail > 0 ? `| 구금 ${item.jail * count}분` : ''}</div>
+                        </div>
+                        <button onclick="changeCount(${item.id}, -${count})" class="text-slate-500 hover:text-rose-400 p-1">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    `;
+                    listContainer.appendChild(itemEl);
+                });
+            }
+
+            let finalMustJail = maxItemMustJail;
+            if (forceMustJail && selectedMap.size > 0 && finalMustJail < 10) {
+                finalMustJail = 10;
+            }
+
+            let calculatedFine = isNewbie ? rawFine * 0.5 : rawFine;
+            let calculatedJail = isNewbie ? Math.floor(rawJail * 0.5) : rawJail;
+            finalMustJail = isNewbie ? Math.floor(finalMustJail * 0.5) : finalMustJail;
+
+            let finalJail = calculatedJail;
+            let bailConvertedAmount = 0;
+            let bailMinutes = 0;
+
+            const bailBox = document.getElementById('bail-converted-box');
+
+            if (isBail && calculatedJail > 0 && selectedMap.size > 0) {
+                bailMinutes = Math.max(0, calculatedJail - finalMustJail);
+                bailConvertedAmount = bailMinutes * BAIL_RATE_PER_MINUTE;
+                finalJail = finalMustJail;
+
+                bailBox.classList.remove('hidden');
+                document.getElementById('bail-minutes').innerText = bailMinutes;
+                document.getElementById('bail-amount').innerText = `+${formatMoney(bailConvertedAmount)}`;
+            } else {
+                bailBox.classList.add('hidden');
+            }
+
+            let finalFine = calculatedFine + bailConvertedAmount;
+
+            document.getElementById('selected-count').innerText = `${totalCount}건 선택됨`;
+            document.getElementById('original-jail').innerText = `${rawJail}분`;
+            document.getElementById('must-jail').innerText = `${finalMustJail}분`;
+            document.getElementById('total-jail').innerText = `${finalJail}분`;
+            document.getElementById('total-fine').innerText = formatMoney(finalFine);
+
+            document.getElementById('mobile-count').innerText = totalCount;
+            document.getElementById('mobile-fine').innerText = formatMoney(finalFine);
+            document.getElementById('mobile-jail').innerText = `(${finalJail}분)`;
+        }
+
+        // 처벌 법 명만 복사
+        async function copySummary() {
+            if (selectedMap.size === 0) {
+                showToast('선택된 항목이 없습니다.');
+                return;
+            }
+
+            const titles = [];
+
+            selectedMap.forEach((count, id) => {
+                const item = lawData.find(l => l.id === id);
+                if (item) {
+                    titles.push(count > 1 ? `${item.title} x${count}` : item.title);
+                }
+            });
+
+            const text = titles.join('\n');
+            await executeCopy(text, '처벌 법 명칭이 복사되었습니다.');
+        }
+
+        // --- 사이드공지 관련 로직 ---
+
+        function switchAlpiTab(tab) {
+            currentAlpiTab = tab;
+            document.querySelectorAll('.alpi-tab-btn').forEach(btn => {
+                btn.className = "alpi-tab-btn py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition text-center";
+            });
+            const activeBtn = document.getElementById(`alpi-tab-${tab}`);
+            if (activeBtn) {
+                activeBtn.className = "alpi-tab-btn py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white transition text-center";
+            }
+            renderAlpiList();
+        }
+
+        function renderAlpiList() {
+            const container = document.getElementById('alpi-list-container');
+            container.innerHTML = '';
+
+            const list = alpiData[currentAlpiTab] || [];
+
+            list.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = "flex justify-between items-center bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/50 hover:border-slate-600 transition";
+                
+                const escapedNotice = item.noticeText.replace(/'/g, "\\'");
+                
+                itemEl.innerHTML = `
+                    <span class="font-semibold text-slate-200 text-sm">${item.name}</span>
+                    <button onclick="copyText('${escapedNotice}')" class="bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-indigo-500/30 transition font-medium">
+                        공지 복사
+                    </button>
+                `;
+                container.appendChild(itemEl);
+            });
+        }
+
+        // 출석 / 수배 경찰청 지정 양식 복사 (유효성 검사 추가)
+        function copyWantedNotice(type) {
+            const name = document.getElementById('wanted-name').value.trim();
+            const id = document.getElementById('wanted-id').value.trim();
+            const reason = document.getElementById('wanted-reason').value.trim();
+
+            if (type !== 'end' && (!name || !id)) {
+                showToast('고유번호와 닉네임을 입력하세요.');
+                return;
+            }
+
+            let text = '';
+            
+            if (type === 'attendance') {
+                const time15 = getTimeFormatted(15);
+                text = `/경찰청 [ 출석요구서 ] 닉네임 : ${name} 고유번호 : ${id} 사유 : ${reason} ${time15} 까지 출석바랍니다. -『 엑시트 경찰청 』-`;
+            } else if (type === 'wanted') {
+                const timeNow = getTimeFormatted(0);
+                const time30 = getTimeFormatted(30);
+                text = `/경찰청 [ 수배공지 ] 닉네임 : ${name} 고유번호 : ${id} ${timeNow} ~ ${time30} 수배알피 진행합니다. 위치추적 시작하겠습니다. -『 엑시트 경찰청 』-`;
+            } else if (type === 'end') {
+                text = `/경찰청 수배 상황 종료되었습니다.`;
+            }
+
+            executeCopy(text, '경찰청 공지 문구가 복사되었습니다.');
+        }
+
+        // 영장 RP 경찰청 지정 양식 복사 (팩션명 필수 입력 검사 추가)
+        function copyWarrantNotice(type) {
+            const name = document.getElementById('warrant-name').value.trim();
+            const id = document.getElementById('warrant-id').value.trim();
+            const faction = document.getElementById('warrant-faction').value.trim();
+
+            if (type === 'convert' && (!name || !id)) {
+                showToast('고유번호와 닉네임을 입력하세요.');
+                return;
+            }
+            if ((type === 'wait' || type === 'complete') && !faction) {
+                showToast('팩션명을 입력하세요.');
+                return;
+            }
+
+            let text = '';
+            if (type === 'convert') {
+                text = `/경찰청 고유번호 ${id} 닉네임 ${name} 님 수배 RP 진행 도중 사유지에 있는 것이 확인되어 수배 RP 가 사유지에 대한 영장 RP 로 전환됨을 통보합니다.`;
+            } else if (type === 'wait') {
+                text = `/경찰청 ${faction} 팩션 대표는 발부된 영장 확인을 위해 사유지 앞에서 대기 하시길 바랍니다.`;
+            } else if (type === 'complete') {
+                text = `/경찰청 ${faction} 팩션에 대한 영장 확인이 완료되었습니다. 준비되신 경우 인원 공표 해주시길 바랍니다.`;
+            }
+
+            executeCopy(text, '영장 RP 공지가 복사되었습니다.');
+        }
+
+        async function copyText(text) {
+            await executeCopy(text, '사이드공지 문구가 복사되었습니다.');
+        }
+
+        async function executeCopy(text, successMessage) {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                }
+                showToast(successMessage);
+            } catch (err) {
+                showToast('복사에 실패했습니다. 권한을 확인해주세요.');
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        window.onload = function() {
+            render();
+        };
+    </script>
+</body>
+</html>
