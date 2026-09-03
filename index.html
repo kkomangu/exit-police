@@ -267,6 +267,7 @@
             { id: 26, category: 'felony', title: '방조 / 공범죄범죄', fine: 0, jail: 0, mustJail: 0, note: '구금 사항에만 해당(범죄자와 동일) / 불법 물건·무기 개별 처벌' },
             { id: 47, category: 'felony', title: '지시불이행', fine: 40000000, jail: 10, mustJail: 0, note: '경관의 명령에 지시불이행할 경우' },
             { id: 48, category: 'felony', title: '살인미수', fine: 100000000, jail: 15, mustJail: 0, note: '' },
+            { id: 50, category: 'felony', title: '총기 발포', fine: 200000000, jail: 10, mustJail: 0, note: ''},
 
             // III. 공무원 법
             { id: 27, category: 'official', title: '공무원 차량 절도 시도', fine: 100000000, jail: 0, mustJail: 0, note: '' },
@@ -299,47 +300,57 @@
             atm: [
                 { 
                     name: '메인광장 ATM', 
-                    noticeText: '/경찰청 현재 "206번지 ATM"에 강도가 출현하였습니다. 시민 분들께서는 ATM 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                    noticeText: '/경찰청 현재 "206번지 ATM"에 강도가 출현하였습니다. 시민 분들께서는 ATM 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -',
+                    note: '206번지'
                 },
                 { 
                     name: '신경 위 ATM', 
-                    noticeText: '/경찰청 현재 "656번지 ATM"에 강도가 출현하였습니다. 시민 분들께서는 ATM 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                    noticeText: '/경찰청 현재 "656번지 ATM"에 강도가 출현하였습니다. 시민 분들께서는 ATM 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -',
+                    note: '656번지'
                 },
                 { 
                     name: '남부 ATM', 
-                    noticeText: '/경찰청 현재 "584번지 ATM"에 강도가 출현하였습니다. 시민 분들께서는 ATM 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                    noticeText: '/경찰청 현재 "584번지 ATM"에 강도가 출현하였습니다. 시민 분들께서는 ATM 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -',
+                    note: '584번지'
                 }
             ],
             convenience: [
                 { 
                     name: '남부 편의점', 
-                    noticeText: '/경찰청 현재 "125번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                    noticeText: '/경찰청 현재 "125번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -',
+                    note: '125번지'
                 },
                 { 
                     name: '남부 은행 뒤 편의점', 
-                    noticeText: '/경찰청 현재 "574번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                    noticeText: '/경찰청 현재 "574번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -',
+                    note: '574번지'
                 },
                 { 
                     name: '신경 위 편의점', 
-                    noticeText: '/경찰청 현재 "635번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                    noticeText: '/경찰청 현재 "635번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -',
+                    note: '635번지'
                 },
                 { 
                     name: '신경 옆 편의점', 
-                    noticeText: '/경찰청 현재 "333번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                    noticeText: '/경찰청 현재 "333번지 편의점"에 강도가 출현하였습니다. 시민 분들께서는 편의점 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -',
+                    note: '333번지'
                 }
             ],
             etc: [
                 { 
                     name: '보석상', 
-                    noticeText: '/경찰청 현재 697번지 "보석상" 에 강도가 출현하였습니다. 시민 분들께서는 보석상 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                    noticeText: '/경찰청 현재 697번지 "보석상" 에 강도가 출현하였습니다. 시민 분들께서는 보석상 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -',
+                    note: '697번지'
                 },
                 { 
                     name: '남부은행', 
-                    noticeText: '/경찰청 현재 575번지 "남부은행" 에 강도가 출현하였습니다. 시민 분들께서는 남부은행 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                    noticeText: '/경찰청 현재 575번지 "남부은행" 에 강도가 출현하였습니다. 시민 분들께서는 남부은행 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -',
+                    note: '575번지'
                 },
                 { 
                     name: '남부 빈집털이', 
-                    noticeText: '/경찰청 현재 692번지 "남부 빈집털이" 에 강도가 출현하였습니다. 시민 분들께서는 남부 빈집털이 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -' 
+                    noticeText: '/경찰청 현재 692번지 "남부 빈집털이" 에 강도가 출현하였습니다. 시민 분들께서는 남부 빈집털이 주변 2 블록 이내에 있을 경우 사살 할 수 있습니다. 근처에 있지 마시고 대피해 주시길 바랍니다. - EXIT 경찰청 -',
+                    note: '692번지'
                 }
             ]
         };
@@ -639,11 +650,14 @@
                 const escapedNotice = item.noticeText.replace(/'/g, "\\'");
                 
                 itemEl.innerHTML = `
-                    <span class="font-semibold text-slate-200 text-sm">${item.name}</span>
-                    <button onclick="copyText('${escapedNotice}')" class="bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-indigo-500/30 transition font-medium">
-                        공지 복사
-                    </button>
-                `;
+    <div class="space-y-0.5">
+        <div class="font-semibold text-slate-200 text-sm">${item.name}</div>
+        ${item.note ? `<div class="text-[11px] text-slate-400">${item.note}</div>` : ''}
+    </div>
+    <button onclick="copyText('${escapedNotice}')" class="bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-indigo-500/30 transition font-medium">
+        공지 복사
+    </button>
+`;
                 container.appendChild(itemEl);
             });
         }
