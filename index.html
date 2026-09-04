@@ -646,29 +646,60 @@
         }
 
         function renderAlpiList() {
-            const container = document.getElementById('alpi-list-container');
-            container.innerHTML = '';
+    const alpiListContainer = document.getElementById('alpiList');
+    if (!alpiListContainer) return;
+    
+    alpiListContainer.innerHTML = '';
 
-            const list = alpiData[currentAlpiTab] || [];
+    alpiData.forEach(item => {
+        const itemEl = document.createElement('div');
+        itemEl.className = "flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:border-slate-600 transition";
 
-            list.forEach(item => {
-                const itemEl = document.createElement('div');
-                itemEl.className = "flex justify-between items-center bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/50 hover:border-slate-600 transition";
-                
-                const escapedNotice = item.noticeText.replace(/'/g, "\\'");
-                
-                itemEl.innerHTML = `
-    <div class="space-y-0.5">
-        <div class="font-semibold text-slate-200 text-sm">${item.name}</div>
-        ${item.note ? `<div class="text-[11px] text-slate-400">${item.note}</div>` : ''}
-    </div>
-    <button onclick="copyText('${escapedNotice}')" class="bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-indigo-500/30 transition font-medium">
-        공지 복사
-    </button>
-`;
-                container.appendChild(itemEl);
-            });
-        }
+        const safeNoticeText = item.noticeText ? item.noticeText.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
+
+        itemEl.innerHTML = `
+            <div class="space-y-0.5">
+                <div class="font-semibold text-slate-200 text-sm">${item.name}</div>
+                ${item.note ? `<div class="text-xs text-amber-400 font-medium">${item.note}</div>` : ''}
+            </div>
+            <button onclick="copyText('${safeNoticeText}')" class="bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-indigo-500/30 transition font-medium">
+                공지 복사
+            </button>
+        `;
+
+        alpiListContainer.appendChild(itemEl);
+    });
+}
+
+function copyText(text) {
+    if (!text) return;
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('공지가 클립보드에 복사되었습니다!');
+        }).catch(() => {
+            fallbackCopyText(text);
+        });
+    } else {
+        fallbackCopyText(text);
+    }
+}
+
+function fallbackCopyText(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        alert('공지가 클립보드에 복사되었습니다!');
+    } catch (err) {
+        alert('복사에 실패했습니다.');
+    }
+    document.body.removeChild(textarea);
+}
 
         // 출석 / 수배 경찰청 지정 양식 복사 (유효성 검사 추가)
         function copyWantedNotice(type) {
