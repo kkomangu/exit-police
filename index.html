@@ -9,18 +9,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-    background-image: 
-        linear-gradient(rgba(15, 23, 42, 0.1), rgba(15, 23, 42, 0.1)),
-        url('https://i.pinimg.com/736x/a4/2b/27/a42b27b0d39e1eda60830597647b8374.jpg');
-    
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    
-    color: #f8fafc;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
+            background-image: 
+                linear-gradient(rgba(15, 23, 42, 0.1), rgba(15, 23, 42, 0.1)),
+                url('https://i.pinimg.com/736x/a4/2b/27/a42b27b0d39e1eda60830597647b8374.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
@@ -372,13 +370,47 @@
             return num.toLocaleString('ko-KR') + '원';
         }
 
-        // Time Helper: HH:MM Format Output
-        function getTimeFormatted(minutesToAdd = 0) {
-            const now = new Date();
-            now.setMinutes(now.getMinutes() + minutesToAdd);
-            const hh = String(now.getHours()).padStart(2, '0');
-            const mm = String(now.getMinutes()).padStart(2, '0');
-            return `${hh}:${mm}`;
+        // ClipBoard Copy Helper
+        function copyToClipboard(text, successMessage = '복사되었습니다.') {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(successMessage);
+                }).catch(() => {
+                    fallbackCopyTextToClipboard(text, successMessage);
+                });
+            } else {
+                fallbackCopyTextToClipboard(text, successMessage);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text, successMessage) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMessage);
+            } catch (err) {
+                showToast('복사에 실패했습니다.');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
         }
 
         // Main Navigation Switching
@@ -454,38 +486,33 @@
                                     <button onclick="changeCount(${item.id}, -1)" class="w-7 h-7 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg flex items-center justify-center font-bold">-</button>
                                     <span class="w-5 text-center font-bold text-indigo-300 text-sm">${count}</span>
                                 ` : ''}
-                                <button onclick="changeCount(${item.id}, 1)" class="px-3 py-1.5 ${isSelected ? 'bg-indigo-600' : 'bg-slate-700'} hover:opacity-90 text-white rounded-lg text-xs font-semibold">
-                                    ${isSelected ? '추가' : '선택'}
-                                </button>
+                                <button onclick="changeCount(${item.id}, 1)" class="px-3 py-1.5 ${isSelected ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-slate-700 hover:bg-slate-600'} text-white text-xs font-semibold rounded-lg transition">+ 추가</button>
                             </div>
                         </div>
                     `;
                 }).join('');
 
                 sectionEl.innerHTML = `
-                    <div class="bg-slate-800 px-4 py-3 border-b border-slate-700 font-bold text-slate-200 text-sm sm:text-base">
+                    <div class="bg-slate-900/80 px-4 py-2.5 border-b border-slate-700/80 font-bold text-slate-200 text-sm flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
                         ${cat.name}
                     </div>
-                    <div class="divide-y divide-slate-700/30">
-                        ${rowsHtml}
-                    </div>
+                    <div>${rowsHtml}</div>
                 `;
-
                 container.appendChild(sectionEl);
             });
-
-            updateSummary();
         }
 
         function changeCount(id, delta) {
             const current = selectedMap.get(id) || 0;
-            const next = current + delta;
-            if (next <= 0) {
+            const updated = current + delta;
+            if (updated <= 0) {
                 selectedMap.delete(id);
             } else {
-                selectedMap.set(id, next);
+                selectedMap.set(id, updated);
             }
             render();
+            updateSummary();
         }
 
         function resetSelection() {
@@ -493,28 +520,19 @@
             document.getElementById('toggle-newbie').checked = false;
             document.getElementById('toggle-mustjail').checked = false;
             document.getElementById('toggle-bail').checked = false;
-
-            document.getElementById('wanted-name').value = '';
-            document.getElementById('wanted-id').value = '';
-            document.getElementById('wanted-reason').value = '';
-            document.getElementById('warrant-name').value = '';
-            document.getElementById('warrant-id').value = '';
-            document.getElementById('warrant-faction').value = '';
-
             render();
-            showToast('모든 입력 항목이 초기화되었습니다.');
+            updateSummary();
+            showToast('초기화되었습니다.');
         }
 
         function filterCategory(cat) {
             currentFilter = cat;
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-indigo-600', 'text-white');
-                btn.classList.add('text-slate-400');
+                btn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition text-slate-400 hover:text-white";
             });
-            const activeTab = document.getElementById(`tab-${cat}`);
-            if (activeTab) {
-                activeTab.classList.add('bg-indigo-600', 'text-white');
-                activeTab.classList.remove('text-slate-400');
+            const activeBtn = document.getElementById(`tab-${cat}`);
+            if (activeBtn) {
+                activeBtn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition bg-indigo-600 text-white";
             }
             render();
         }
@@ -525,269 +543,182 @@
         }
 
         function updateSummary() {
-            const listContainer = document.getElementById('selected-list');
-            listContainer.innerHTML = '';
-
-            let rawFine = 0;
-            let rawJail = 0;
-            let maxItemMustJail = 0;
-            let totalCount = 0;
-
             const isNewbie = document.getElementById('toggle-newbie').checked;
-            const forceMustJail = document.getElementById('toggle-mustjail').checked;
+            const isMustJail = document.getElementById('toggle-mustjail').checked;
             const isBail = document.getElementById('toggle-bail').checked;
 
+            let origJail = 0;
+            let reqJail = 0;
+            let rawFine = 0;
+            let itemsCount = 0;
+
+            const selectedListEl = document.getElementById('selected-list');
+            selectedListEl.innerHTML = '';
+
             if (selectedMap.size === 0) {
-                listContainer.innerHTML = `
+                selectedListEl.innerHTML = `
                     <div id="empty-notice" class="h-20 flex flex-col items-center justify-center text-slate-500 gap-1.5">
                         <i class="fa-solid fa-list-check text-xl"></i>
                         <span>선택된 항목이 없습니다.</span>
                     </div>
                 `;
-            } else {
-                selectedMap.forEach((count, id) => {
-                    const item = lawData.find(l => l.id === id);
-                    if (!item) return;
-
-                    rawFine += item.fine * count;
-                    rawJail += item.jail * count;
-                    if (item.mustJail > maxItemMustJail) {
-                        maxItemMustJail = item.mustJail;
-                    }
-                    totalCount += count;
-
-                    const itemEl = document.createElement('div');
-                    itemEl.className = "flex justify-between items-center bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50";
-                    itemEl.innerHTML = `
-                        <div class="pr-2 truncate">
-                            <div class="font-medium text-slate-200 truncate">${item.title} ${count > 1 ? `<span class="text-indigo-400">x${count}</span>` : ''}</div>
-                            <div class="text-[11px] text-slate-400">${item.fine > 0 ? formatMoney(item.fine * count) : '개별처벌'} ${item.jail > 0 ? `| 구금 ${item.jail * count}분` : ''}</div>
-                        </div>
-                        <button onclick="changeCount(${item.id}, -${count})" class="text-slate-500 hover:text-rose-400 p-1">
-                            <i class="fa-solid fa-xmark text-sm"></i>
-                        </button>
-                    `;
-                    listContainer.appendChild(itemEl);
-                });
             }
 
-            let finalMustJail = maxItemMustJail;
-            if (forceMustJail && selectedMap.size > 0 && finalMustJail < 10) {
-                finalMustJail = 10;
+            selectedMap.forEach((count, id) => {
+                const item = lawData.find(l => l.id === id);
+                if (!item) return;
+
+                itemsCount += count;
+                origJail += (item.jail * count);
+                reqJail += (item.mustJail * count);
+                rawFine += (item.fine * count);
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50 flex justify-between items-center";
+                itemDiv.innerHTML = `
+                    <div>
+                        <div class="font-semibold text-slate-200 text-xs">${item.title} x${count}</div>
+                        <div class="text-[10px] text-slate-400">${formatMoney(item.fine * count)} ${item.jail ? `/ 구금 ${item.jail * count}분` : ''}</div>
+                    </div>
+                    <button onclick="changeCount(${item.id}, -${count})" class="text-slate-500 hover:text-rose-400 text-xs px-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                selectedListEl.appendChild(itemDiv);
+            });
+
+            if (isMustJail) reqJail = Math.max(reqJail, 10);
+            let finalJail = Math.max(origJail, reqJail);
+
+            let bailMins = 0;
+            let bailAddFine = 0;
+
+            if (isBail) {
+                bailMins = Math.max(0, finalJail - reqJail);
+                finalJail = reqJail;
+                bailAddFine = bailMins * BAIL_RATE_PER_MINUTE;
             }
 
-            let calculatedFine = isNewbie ? rawFine * 0.5 : rawFine;
-            let calculatedJail = isNewbie ? Math.floor(rawJail * 0.5) : rawJail;
-            finalMustJail = isNewbie ? Math.floor(finalMustJail * 0.5) : finalMustJail;
+            let totalFine = rawFine;
+            if (isNewbie) totalFine = Math.floor(totalFine * 0.5);
+            totalFine += bailAddFine;
 
-            let finalJail = calculatedJail;
-            let bailConvertedAmount = 0;
-            let bailMinutes = 0;
+            document.getElementById('selected-count').innerText = `${itemsCount}건 선택됨`;
+            document.getElementById('original-jail').innerText = `${origJail}분`;
+            document.getElementById('must-jail').innerText = `${reqJail}분`;
+            document.getElementById('total-jail').innerText = `${finalJail}분`;
+            document.getElementById('total-fine').innerText = formatMoney(totalFine);
 
             const bailBox = document.getElementById('bail-converted-box');
-
-            if (isBail && calculatedJail > 0 && selectedMap.size > 0) {
-                bailMinutes = Math.max(0, calculatedJail - finalMustJail);
-                bailConvertedAmount = bailMinutes * BAIL_RATE_PER_MINUTE;
-                finalJail = finalMustJail;
-
+            if (isBail && bailMins > 0) {
                 bailBox.classList.remove('hidden');
-                document.getElementById('bail-minutes').innerText = bailMinutes;
-                document.getElementById('bail-amount').innerText = `+${formatMoney(bailConvertedAmount)}`;
+                document.getElementById('bail-minutes').innerText = bailMins;
+                document.getElementById('bail-amount').innerText = `+${formatMoney(bailAddFine)}`;
             } else {
                 bailBox.classList.add('hidden');
             }
 
-            let finalFine = calculatedFine + bailConvertedAmount;
-
-            document.getElementById('selected-count').innerText = `${totalCount}건 선택됨`;
-            document.getElementById('original-jail').innerText = `${rawJail}분`;
-            document.getElementById('must-jail').innerText = `${finalMustJail}분`;
-            document.getElementById('total-jail').innerText = `${finalJail}분`;
-            document.getElementById('total-fine').innerText = formatMoney(finalFine);
-
-            document.getElementById('mobile-count').innerText = totalCount;
-            document.getElementById('mobile-fine').innerText = formatMoney(finalFine);
+            document.getElementById('mobile-count').innerText = itemsCount;
+            document.getElementById('mobile-fine').innerText = formatMoney(totalFine);
             document.getElementById('mobile-jail').innerText = `(${finalJail}분)`;
         }
 
-        // 처벌 법 명만 복사
-        async function copySummary() {
+        function copySummary() {
             if (selectedMap.size === 0) {
                 showToast('선택된 항목이 없습니다.');
                 return;
             }
-
-            const titles = [];
-
-            selectedMap.forEach((count, id) => {
+            const listText = Array.from(selectedMap.entries()).map(([id, count]) => {
                 const item = lawData.find(l => l.id === id);
-                if (item) {
-                    titles.push(count > 1 ? `${item.title} x${count}` : item.title);
-                }
-            });
+                return `${item.title}${count > 1 ? ` x${count}` : ''}`;
+            }).join(' / ');
 
-            const text = titles.join('\n');
-            await executeCopy(text, '처벌 법 명칭이 복사되었습니다.');
+            copyToClipboard(listText, '처벌 법 명이 복사되었습니다.');
         }
 
-        // --- 사이드공지 관련 로직 ---
-
-        function switchAlpiTab(tab) {
-            currentAlpiTab = tab;
+        // Side Notice Functions
+        function switchAlpiTab(tabKey) {
+            currentAlpiTab = tabKey;
             document.querySelectorAll('.alpi-tab-btn').forEach(btn => {
                 btn.className = "alpi-tab-btn py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition text-center";
             });
-            const activeBtn = document.getElementById(`alpi-tab-${tab}`);
-            if (activeBtn) {
-                activeBtn.className = "alpi-tab-btn py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white transition text-center";
+            const activeTab = document.getElementById(`alpi-tab-${tabKey}`);
+            if (activeTab) {
+                activeTab.className = "alpi-tab-btn py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white transition text-center";
             }
             renderAlpiList();
         }
 
         function renderAlpiList() {
-    const alpiListContainer = document.getElementById('alpiList');
-    if (!alpiListContainer) return;
-    
-    alpiListContainer.innerHTML = '';
+            const container = document.getElementById('alpi-list-container');
+            container.innerHTML = '';
+            const list = alpiData[currentAlpiTab] || [];
 
-    alpiData.forEach(item => {
-        const itemEl = document.createElement('div');
-        itemEl.className = "flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:border-slate-600 transition";
-
-        const safeNoticeText = item.noticeText ? item.noticeText.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
-
-        itemEl.innerHTML = `
-            <div class="space-y-0.5">
-                <div class="font-semibold text-slate-200 text-sm">${item.name}</div>
-                ${item.note ? `<div class="text-xs text-amber-400 font-medium">${item.note}</div>` : ''}
-            </div>
-            <button onclick="copyText('${safeNoticeText}')" class="bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-indigo-500/30 transition font-medium">
-                공지 복사
-            </button>
-        `;
-
-        alpiListContainer.appendChild(itemEl);
-    });
-}
-
-function copyText(text) {
-    if (!text) return;
-
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => {
-            alert('공지가 클립보드에 복사되었습니다!');
-        }).catch(() => {
-            fallbackCopyText(text);
-        });
-    } else {
-        fallbackCopyText(text);
-    }
-}
-
-function fallbackCopyText(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.left = '-9999px';
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand('copy');
-        alert('공지가 클립보드에 복사되었습니다!');
-    } catch (err) {
-        alert('복사에 실패했습니다.');
-    }
-    document.body.removeChild(textarea);
-}
-
-        // 출석 / 수배 경찰청 지정 양식 복사 (유효성 검사 추가)
-        function copyWantedNotice(type) {
-            const name = document.getElementById('wanted-name').value.trim();
-            const id = document.getElementById('wanted-id').value.trim();
-            const reason = document.getElementById('wanted-reason').value.trim();
-
-            if (type !== 'end' && (!name || !id)) {
-                showToast('고유번호와 닉네임을 입력하세요.');
-                return;
-            }
-
-            let text = '';
-            
-            if (type === 'attendance') {
-                const time15 = getTimeFormatted(15);
-                text = `/경찰청 [ 출석요구서 ] 닉네임 : ${name} 고유번호 : ${id} 사유 : ${reason} ${time15} 까지 출석바랍니다. -『 엑시트 경찰청 』-`;
-            } else if (type === 'wanted') {
-                const timeNow = getTimeFormatted(0);
-                const time30 = getTimeFormatted(30);
-                text = `/경찰청 [ 수배공지 ] 닉네임 : ${name} 고유번호 : ${id} ${timeNow} ~ ${time30} 수배알피 진행합니다. 위치추적 시작하겠습니다. -『 엑시트 경찰청 』-`;
-            } else if (type === 'end') {
-                text = `/경찰청 수배 상황 종료되었습니다.`;
-            }
-
-            executeCopy(text, '경찰청 공지 문구가 복사되었습니다.');
+            list.forEach((item, index) => {
+                const itemEl = document.createElement('div');
+                itemEl.className = "bg-slate-900/70 border border-slate-700/60 rounded-xl p-3.5 space-y-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3";
+                itemEl.innerHTML = `
+                    <div>
+                        <div class="font-bold text-slate-100 text-sm flex items-center gap-2">
+                            <span>${item.name}</span>
+                            ${item.note ? `<span class="bg-indigo-500/20 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full border border-indigo-500/30">${item.note}</span>` : ''}
+                        </div>
+                        <div class="text-xs text-slate-400 mt-1 line-clamp-1">${item.noticeText}</div>
+                    </div>
+                    <button onclick="copyAlpiNotice('${currentAlpiTab}', ${index})" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3.5 py-2 rounded-lg font-medium transition whitespace-nowrap self-end sm:self-auto flex items-center gap-1.5">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>공지 복사</span>
+                    </button>
+                `;
+                container.appendChild(itemEl);
+            });
         }
 
-        // 영장 RP 경찰청 지정 양식 복사 (팩션명 필수 입력 검사 추가)
-        function copyWarrantNotice(type) {
-            const name = document.getElementById('warrant-name').value.trim();
-            const id = document.getElementById('warrant-id').value.trim();
-            const faction = document.getElementById('warrant-faction').value.trim();
+        function copyAlpiNotice(category, index) {
+            const item = alpiData[category]?.[index];
+            if (item) {
+                copyToClipboard(item.noticeText, `${item.name} 공지가 복사되었습니다.`);
+            }
+        }
 
-            if (type === 'convert' && (!name || !id)) {
-                showToast('고유번호와 닉네임을 입력하세요.');
-                return;
+        function copyWantedNotice(type) {
+            const name = document.getElementById('wanted-name').value.trim() || 'OOO';
+            const id = document.getElementById('wanted-id').value.trim() || '000';
+            const reason = document.getElementById('wanted-reason').value.trim() || '사유 미기재';
+
+            let text = '';
+            if (type === 'attendance') {
+                text = `/경찰청 [출석 요구] 닉네임: ${name} (${id}) / 사유: ${reason} - 사유 확인을 위해 지체없이 경찰청으로 출석해주시길 바랍니다.`;
+            } else if (type === 'wanted') {
+                text = `/경찰청 [수배 공지] 닉네임: ${name} (${id}) / 사유: ${reason} - 해당 인원을 목격하신 시민분들께서는 경찰청으로 신고바랍니다.`;
+            } else if (type === 'end') {
+                text = `/경찰청 [수배 종료] 닉네임: ${name} (${id}) 님의 수배가 종료되었음을 알려드립니다.`;
             }
-            if ((type === 'wait' || type === 'complete') && !faction) {
-                showToast('팩션명을 입력하세요.');
-                return;
-            }
+
+            copyToClipboard(text, '수배 양식이 복사되었습니다.');
+        }
+
+        function copyWarrantNotice(type) {
+            const name = document.getElementById('warrant-name').value.trim() || 'OOO';
+            const id = document.getElementById('warrant-id').value.trim() || '000';
+            const faction = document.getElementById('warrant-faction').value.trim() || '해당 팩션';
 
             let text = '';
             if (type === 'convert') {
-                text = `/경찰청 고유번호 ${id} 닉네임 ${name} 님 수배 RP 진행 도중 사유지에 있는 것이 확인되어 수배 RP 가 사유지에 대한 영장 RP 로 전환됨을 통보합니다.`;
+                text = `/경찰청 [영장 RP 전환] 대상: ${name} (${id}) / 팩션: ${faction} - 영장 발부에 따라 영장 RP 상태로 전환됩니다.`;
             } else if (type === 'wait') {
-                text = `/경찰청 ${faction} 팩션 대표는 발부된 영장 확인을 위해 사유지 앞에서 대기 하시길 바랍니다.`;
+                text = `/경찰청 [대표 대기 요청] 팩션명: ${faction} - 영장 집행과 관련하여 대표자께서는 즉시 대기해주시기 바랍니다.`;
             } else if (type === 'complete') {
-                text = `/경찰청 ${faction} 팩션에 대한 영장 확인이 완료되었습니다. 준비되신 경우 인원 공표 해주시길 바랍니다.`;
+                text = `/경찰청 [영장 확인 완료] 대상: ${name} (${id}) - 영장 확인 절차가 모두 정상 완료되었습니다.`;
             }
 
-            executeCopy(text, '영장 RP 공지가 복사되었습니다.');
+            copyToClipboard(text, '영장 RP 양식이 복사되었습니다.');
         }
 
-        async function copyText(text) {
-            await executeCopy(text, '사이드공지 문구가 복사되었습니다.');
-        }
-
-        async function executeCopy(text, successMessage) {
-            try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(text);
-                } else {
-                    const textarea = document.createElement('textarea');
-                    textarea.value = text;
-                    document.body.appendChild(textarea);
-                    textarea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textarea);
-                }
-                showToast(successMessage);
-            } catch (err) {
-                showToast('복사에 실패했습니다. 권한을 확인해주세요.');
-            }
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-message').innerText = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 2500);
-        }
-
+        // Initialize Page
         window.onload = function() {
             render();
+            updateSummary();
         };
     </script>
 </body>
