@@ -698,22 +698,142 @@
             copyToClipboard(text, '수배 양식이 복사되었습니다.');
         }
 
-        function copyWarrantNotice(type) {
-            const name = document.getElementById('warrant-name').value.trim() || 'OOO';
-            const id = document.getElementById('warrant-id').value.trim() || '000';
-            const faction = document.getElementById('warrant-faction').value.trim() || '해당 팩션';
+        function copyWantedNotice(type) {
+    const name = document.getElementById('wanted-name').value.trim();
+    const id = document.getElementById('wanted-id').value.trim();
+    const reason = document.getElementById('wanted-reason').value.trim();
 
-            let text = '';
-            if (type === 'convert') {
-                text = `/경찰청 [영장 RP 전환] 대상: ${name} (${id}) / 팩션: ${faction} - 영장 발부에 따라 영장 RP 상태로 전환됩니다.`;
-            } else if (type === 'wait') {
-                text = `/경찰청 [대표 대기 요청] 팩션명: ${faction} - 영장 집행과 관련하여 대표자께서는 즉시 대기해주시기 바랍니다.`;
-            } else if (type === 'complete') {
-                text = `/경찰청 [영장 확인 완료] 대상: ${name} (${id}) - 영장 확인 절차가 모두 정상 완료되었습니다.`;
-            }
-
-            copyToClipboard(text, '영장 RP 양식이 복사되었습니다.');
+    // 1. 출석 요구: 닉네임, 고유번호, 사유 필수
+    if (type === 'attendance') {
+        if (!name || !id || !reason) {
+            showToast('닉네임, 고유번호, 사유를 모두 입력해주세요.');
+            return;
         }
+        const text = `/경찰청 [출석 요구] 닉네임: ${name} (${id}) / 사유: ${reason} - 사유 확인을 위해 지체없이 경찰청으로 출석해주시길 바랍니다.`;
+        copyToClipboard(text, '출석 요구 양식이 복사되었습니다.');
+    } 
+    // 2. 수배 공지: 고유번호, 닉네임 필수 (사유는 미입력 시 '사유 미기재' 처리)
+    else if (type === 'wanted') {
+        if (!name || !id) {
+            showToast('닉네임과 고유번호를 입력해주세요.');
+            return;
+        }
+        const text = `/경찰청 [수배 공지] 닉네임: ${name} (${id}) / 사유: ${reason || '사유 미기재'} - 해당 인원을 목격하신 시민분들께서는 경찰청으로 신고바랍니다.`;
+        copyToClipboard(text, '수배 공지 양식이 복사되었습니다.');
+    } 
+    // 3. 수배 종료: 고유번호, 닉네임 필수
+    else if (type === 'end') {
+        if (!name || !id) {
+            showToast('닉네임과 고유번호를 입력해주세요.');
+            return;
+        }
+        const text = `/경찰청 [수배 종료] 닉네임: ${name} (${id}) 님의 수배가 종료되었음을 알려드립니다.`;
+        copyToClipboard(text, '수배 종료 양식이 복사되었습니다.');
+    }
+}
+
+function copyWantedNotice(type) {
+    const name = document.getElementById('wanted-name').value.trim();
+    const id = document.getElementById('wanted-id').value.trim();
+    const reason = document.getElementById('wanted-reason').value.trim();
+
+    // 1. 출석 요구: 닉네임, 고유번호, 사유 모두 필수
+    if (type === 'attendance') {
+        if (!name || !id || !reason) {
+            showToast('닉네임, 고유번호, 사유를 모두 입력해주세요.');
+            return;
+        }
+        const text = `/경찰청 [출석 요구] 닉네임: ${name} (${id}) / 사유: ${reason} - 사유 확인을 위해 지체없이 경찰청으로 출석해주시길 바랍니다.`;
+        copyToClipboard(text, '출석 요구 양식이 복사되었습니다.');
+    } 
+    // 2. 수배 공지: 고유번호, 닉네임 필수
+    else if (type === 'wanted') {
+        if (!name || !id) {
+            showToast('닉네임과 고유번호를 입력해주세요.');
+            return;
+        }
+        const text = `/경찰청 [수배 공지] 닉네임: ${name} (${id}) / 사유: ${reason || '사유 미기재'} - 해당 인원을 목격하신 시민분들께서는 경찰청으로 신고바랍니다.`;
+        copyToClipboard(text, '수배 공지 양식이 복사되었습니다.');
+    } 
+    // 3. 수배 종료: 고유번호, 닉네임 필수
+    else if (type === 'end') {
+        if (!name || !id) {
+            showToast('닉네임과 고유번호를 입력해주세요.');
+            return;
+        }
+        const text = `/경찰청 [수배 종료] 닉네임: ${name} (${id}) 님의 수배가 종료되었음을 알려드립니다.`;
+        copyToClipboard(text, '수배 종료 양식이 복사되었습니다.');
+    }
+}
+
+function copyWantedNotice(type) {
+    const name = document.getElementById('wanted-name').value.trim();
+    const id = document.getElementById('wanted-id').value.trim();
+    const reason = document.getElementById('wanted-reason').value.trim();
+
+    // 1. 출석 요구: 닉네임, 고유번호, 사유 모두 필수
+    if (type === 'attendance') {
+        if (!name || !id || !reason) {
+            showToast('닉네임, 고유번호, 사유를 모두 입력해주세요.');
+            return;
+        }
+        const text = `/경찰청 [출석 요구] 닉네임: ${name} (${id}) / 사유: ${reason} - 사유 확인을 위해 지체없이 경찰청으로 출석해주시길 바랍니다.`;
+        copyToClipboard(text, '출석 요구 양식이 복사되었습니다.');
+    } 
+    // 2. 수배 공지: 고유번호, 닉네임 필수
+    else if (type === 'wanted') {
+        if (!name || !id) {
+            showToast('닉네임과 고유번호를 입력해주세요.');
+            return;
+        }
+        const text = `/경찰청 [수배 공지] 닉네임: ${name} (${id}) / 사유: ${reason || '사유 미기재'} - 해당 인원을 목격하신 시민분들께서는 경찰청으로 신고바랍니다.`;
+        copyToClipboard(text, '수배 공지 양식이 복사되었습니다.');
+    } 
+    // 3. 수배 종료: 고유번호, 닉네임 필수
+    else if (type === 'end') {
+        if (!name || !id) {
+            showToast('닉네임과 고유번호를 입력해주세요.');
+            return;
+        }
+        const text = `/경찰청 [수배 종료] 닉네임: ${name} (${id}) 님의 수배가 종료되었음을 알려드립니다.`;
+        copyToClipboard(text, '수배 종료 양식이 복사되었습니다.');
+    }
+}
+
+function copyWarrantNotice(type) {
+    const name = document.getElementById('warrant-name').value.trim();
+    const id = document.getElementById('warrant-id').value.trim();
+    const faction = document.getElementById('warrant-faction').value.trim();
+
+    // 1. 영장 RP 전환: 고유번호, 닉네임 필수
+    if (type === 'convert') {
+        if (!name || !id) {
+            showToast('닉네임과 고유번호를 입력해주세요.');
+            return;
+        }
+        const text = `/경찰청 [영장 RP 전환] 대상: ${name} (${id}) / 팩션: ${faction || '해당 팩션'} - 영장 발부에 따라 영장 RP 상태로 전환됩니다.`;
+        copyToClipboard(text, '영장 RP 전환 양식이 복사되었습니다.');
+    } 
+    // 2. 대표 대기 요청: 팩션명 필수
+    else if (type === 'wait') {
+        if (!faction) {
+            showToast('팩션명을 입력해주세요.');
+            return;
+        }
+        const text = `/경찰청 [대표 대기 요청] 팩션명: ${faction} - 영장 집행과 관련하여 대표자께서는 즉시 대기해주시기 바랍니다.`;
+        copyToClipboard(text, '대표 대기 요청 양식이 복사되었습니다.');
+    } 
+    // 3. 영장 확인 완료: 팩션명 필수
+    else if (type === 'complete') {
+        if (!faction) {
+            showToast('팩션명을 입력해주세요.');
+            return;
+        }
+        const targetInfo = (name || id) ? ` / 대상: ${name || 'OOO'} (${id || '000'})` : '';
+        const text = `/경찰청 [영장 확인 완료] 팩션명: ${faction}${targetInfo} - 영장 확인 절차가 모두 정상 완료되었습니다.`;
+        copyToClipboard(text, '영장 확인 완료 양식이 복사되었습니다.');
+    }
+}
 
         // Initialize Page
         window.onload = function() {
