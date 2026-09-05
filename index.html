@@ -841,5 +841,79 @@ function copyWarrantNotice(type) {
             updateSummary();
         };
     </script>
+    <!-- 기존 HTML 코드들 ... -->
+
+    <!-- 기존 script 태그 내부 또는 새로 만든 script 태그 안에 붙여넣기 -->
+    <script>
+        // 현재 시간을 HH:MM 형식으로 반환하는 함수
+        function getFormattedTime(addMinutes = 0) {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + addMinutes);
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        function copyWantedNotice(type) {
+            const name = document.getElementById('wanted-name').value.trim();
+            const id = document.getElementById('wanted-id').value.trim();
+            const reason = document.getElementById('wanted-reason').value.trim();
+
+            if (type === 'attendance') {
+                if (!name || !id || !reason) {
+                    showToast('닉네임, 고유번호, 사유를 모두 입력해주세요.');
+                    return;
+                }
+                const timeLimit = getFormattedTime(5);
+                const text = `/경찰청 [ 출석요구서 ] 닉네임 : ${name} 고유번호 : ${id} 사유 : ${reason} ${timeLimit} 까지 출석바랍니다. -『 엑시트 경찰청 』-`;
+                copyToClipboard(text, '출석 요구 양식이 복사되었습니다.');
+            } 
+            else if (type === 'wanted') {
+                if (!name || !id) {
+                    showToast('닉네임과 고유번호를 입력해주세요.');
+                    return;
+                }
+                const startTime = getFormattedTime(0);
+                const endTime = getFormattedTime(30);
+                const text = `/경찰청 [ 수배공지 ] 닉네임 : ${name} 고유번호 : ${id} ${startTime} ~ ${endTime} 수배알피 진행합니다. 위치추적 시작하겠습니다. -『 엑시트 경찰청 』-`;
+                copyToClipboard(text, '수배 공지 양식이 복사되었습니다.');
+            } 
+            else if (type === 'end') {
+                const text = `/경찰청 수배 상황 종료되었습니다.`;
+                copyToClipboard(text, '수배 종료 양식이 복사되었습니다.');
+            }
+        }
+
+        function copyWarrantNotice(type) {
+            const name = document.getElementById('warrant-name').value.trim();
+            const id = document.getElementById('warrant-id').value.trim();
+            const faction = document.getElementById('warrant-faction').value.trim();
+
+            if (type === 'convert') {
+                if (!name || !id) {
+                    showToast('닉네임과 고유번호를 입력해주세요.');
+                    return;
+                }
+                const text = `/경찰청 고유번호 ${id} 닉네임 ${name} 님 수배 RP 진행 도중 사유지에 있는 것이 확인되어 수배 RP 가 사유지에 대한 영장 RP 로 전환됨을 통보합니다.`;
+                copyToClipboard(text, '영장 RP 전환 양식이 복사되었습니다.');
+            } 
+            else if (type === 'wait') {
+                if (!faction) {
+                    showToast('팩션명을 입력해주세요.');
+                    return;
+                }
+                const text = `/경찰청 ${faction} 팩션 대표는 발부된 영장 확인을 위해 사유지 앞에서 대기 하시길 바랍니다.`;
+                copyToClipboard(text, '대표 대기 요청 양식이 복사되었습니다.');
+            } 
+            else if (type === 'complete') {
+                if (!faction) {
+                    showToast('팩션명을 입력해주세요.');
+                    return;
+                }
+                const text = `/경찰청 ${faction} 팩션에 대한 영장 확인이 완료되었습니다. 준비되신 경우 인원 공표 해주시길 바랍니다.`;
+                copyToClipboard(text, '영장 확인 완료 양식이 복사되었습니다.');
+            }
+        }
+    </script>
 </body>
 </html>
